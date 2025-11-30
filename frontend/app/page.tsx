@@ -11,8 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   const [stores, setStores] = useState<Store[]>([]);
@@ -64,7 +62,7 @@ export default function HomePage() {
                   <img
                     src={store.backgroundImage}
                     alt={store.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-[500px] object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                 </div>
@@ -79,26 +77,23 @@ export default function HomePage() {
                     {store.models.length === 1 ? "model" : "models"} available
                   </CardDescription>
                 </CardContent>
-                <CardFooter className=" flex items-center justify-between">
-                  <Badge
-                    variant={
-                      store.activeUsers >= 2 ? "destructive" : "secondary"
-                    }
+                <CardFooter className="flex items-center justify-between px-4 py-4">
+                  <div
                     className={
                       store.activeUsers >= 2
-                        ? "bg-red-500/20 text-red-300 border-red-500/30"
-                        : "bg-green-500/20 text-green-300 border-green-500/30"
+                        ? "bg-red-500/20 text-red-300 "
+                        : "bg-green-500/20 text-green-300 "
                     }
                   >
                     {store.activeUsers}/2 users
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-white hover:text-purple-300"
+                  </div>
+                  <button
+                    type="button"
+                    className="text-white hover:text-purple-300 cursor-pointer bg-transparent  px-4 py-2 h-auto rounded-md transition-colors outline-none focus:outline-none"
+                    style={{ backgroundColor: "transparent", border: "none" }}
                   >
                     Enter →
-                  </Button>
+                  </button>
                 </CardFooter>
               </Card>
             </Link>

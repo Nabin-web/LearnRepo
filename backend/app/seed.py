@@ -15,13 +15,13 @@ async def seed_data():
         Store(
             _id="store_001",
             name="Fashion Store",
-            backgroundImage="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?q=80&w=2574&auto=format&fit=crop",
+            backgroundImage="https://images.unsplash.com/photo-1719716133697-e924192e9a7f?q=80&w=2362&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             models=[
                 Model3D(
                     id="shirt_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
                     position=Position(x=0.2, y=0.9),
-                    scale=Scale(width=600.0, height=600.0),
+                    scale=Scale(width=400.0, height=400.0),
                 ),
              
                 
@@ -29,13 +29,13 @@ async def seed_data():
                     id="pant_2",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb",
                     position=Position(x=0.5, y=0.9),
-                    scale=Scale(width=8000.0, height=8000.0),
+                    scale=Scale(width=6000.0, height=6000.0),
                 ),
                 Model3D(
                     id="shoe_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/FlightHelmet/glTF/FlightHelmet.gltf",
                     position=Position(x=0.8, y=0.9),
-                    scale=Scale(width=800.0, height=800.0),
+                    scale=Scale(width=600.0, height=600.0),
                 ),
             ],
             activeUsers=0,
@@ -43,11 +43,11 @@ async def seed_data():
         Store(
             _id="store_002",
             name="Clothing Boutique",
-            backgroundImage="https://images.unsplash.com/photo-1638879705889-ed5691a39c85?q=80&w=1947&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            backgroundImage="https://images.unsplash.com/photo-1551909386-707ddce67573?q=80&w=2338&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             models=[
                 Model3D(
-                    id="shirt_2",
-                    url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
+                    id="shoe_2",
+                    url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/FlightHelmet/glTF/FlightHelmet.gltf",
                     position=Position(x=0.2, y=0.9),
                     scale=Scale(width=600.0, height=600.0),
                 ),
@@ -55,14 +55,9 @@ async def seed_data():
                     id="pant_2",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb",
                     position=Position(x=0.5, y=0.9),
-                    scale=Scale(width=8000.0, height=8000.0),
+                    scale=Scale(width=6000.0, height=6000.0),
                 ),
-                Model3D(
-                    id="shoe_2",
-                    url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/FlightHelmet/glTF/FlightHelmet.gltf",
-                    position=Position(x=0.8, y=0.9),
-                    scale=Scale(width=800.0, height=800.0),
-                ),
+                
             ],
             activeUsers=0,
         ),

@@ -52,7 +52,10 @@ export const api = {
         body: JSON.stringify({ position }),
       }
     );
-    if (!response.ok) throw new Error("Failed to update model position");
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(errorData.detail || `Failed to update model position: ${response.status} ${response.statusText}`);
+    }
     return response.json();
   },
 };

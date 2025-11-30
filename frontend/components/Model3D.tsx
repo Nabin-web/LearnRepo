@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useRef, useState, useEffect } from 'react';
-import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
-import { Model3D as Model3DType } from '@/lib/api';
-import * as THREE from 'three';
+import { useRef, useState, useEffect } from "react";
+import { useFrame, ThreeEvent, useThree } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
+import { Model3D as Model3DType } from "@/lib/api";
+import * as THREE from "three";
 
 interface Model3DProps {
   model: Model3DType;
@@ -13,14 +13,21 @@ interface Model3DProps {
   shouldAnimate: boolean;
 }
 
-export default function Model3D({ model, onMove, animationDelay, shouldAnimate }: Model3DProps) {
+export default function Model3D({
+  model,
+  onMove,
+  animationDelay,
+  shouldAnimate,
+}: Model3DProps) {
   const meshRef = useRef<THREE.Group>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
   const [rotationY, setRotationY] = useState(0);
   const [animationProgress, setAnimationProgress] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const [dragOffset, setDragOffset] = useState<THREE.Vector3>(new THREE.Vector3());
+  const [dragOffset, setDragOffset] = useState<THREE.Vector3>(
+    new THREE.Vector3()
+  );
   const [lastMouseX, setLastMouseX] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const { size, gl } = useThree();
@@ -31,7 +38,10 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
   // Convert normalized coordinates (0-1) to 3D world coordinates
   // Normalized: (0,0) = top-left, (1,1) = bottom-right
   // World: center at (0,0), X: -width/2 to width/2, Y: -height/2 to height/2
-  const normalizedToWorld = (normalizedX: number, normalizedY: number): THREE.Vector3 => {
+  const normalizedToWorld = (
+    normalizedX: number,
+    normalizedY: number
+  ): THREE.Vector3 => {
     if (size.width === 0 || size.height === 0) {
       return new THREE.Vector3(0, 0, 0);
     }
@@ -41,12 +51,14 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
   };
 
   // Convert 3D world coordinates to normalized coordinates (0-1)
-  const worldToNormalized = (worldPos: THREE.Vector3): { x: number; y: number } => {
+  const worldToNormalized = (
+    worldPos: THREE.Vector3
+  ): { x: number; y: number } => {
     if (size.width === 0 || size.height === 0) {
       return { x: 0.5, y: 0.5 };
     }
-    const x = (worldPos.x / size.width) + 0.5;
-    const y = 0.5 - (worldPos.y / size.height); // Invert Y axis
+    const x = worldPos.x / size.width + 0.5;
+    const y = 0.5 - worldPos.y / size.height; // Invert Y axis
     return { x: Math.max(0, Math.min(1, x)), y: Math.max(0, Math.min(1, y)) };
   };
 
@@ -62,7 +74,10 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
     // Entrance animation: starts small, moves from corner to final position, grows
     if (shouldAnimate && !hasAnimated && animationProgress < 1) {
       const duration = 1.0; // 1 second animation
-      const newProgress = Math.min(animationProgress + delta / (duration + animationDelay), 1);
+      const newProgress = Math.min(
+        animationProgress + delta / (duration + animationDelay),
+        1
+      );
       setAnimationProgress(newProgress);
 
       // Ease-out cubic for smooth animation
@@ -73,7 +88,11 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
       const targetWorldPos = getWorldPosition(model.position);
 
       // Interpolate position
-      meshRef.current.position.lerpVectors(startWorldPos, targetWorldPos, eased);
+      meshRef.current.position.lerpVectors(
+        startWorldPos,
+        targetWorldPos,
+        eased
+      );
 
       // Scale animation: start very small (0.1), grow to full size
       const minScale = 0.1;
@@ -94,7 +113,11 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
       if (meshRef.current.position.distanceTo(targetPos) > 0.1) {
         meshRef.current.position.lerp(targetPos, 0.1); // Smooth transition
       }
-      meshRef.current.scale.set(model.scale.width, model.scale.width, model.scale.width);
+      meshRef.current.scale.set(
+        model.scale.width,
+        model.scale.width,
+        model.scale.width
+      );
     }
 
     // Apply rotation
@@ -119,20 +142,22 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
       e.preventDefault();
       e.stopPropagation();
       const rotationSpeed = 0.02;
-      setRotationY(prev => prev + (e.deltaY > 0 ? rotationSpeed : -rotationSpeed));
+      setRotationY(
+        (prev) => prev + (e.deltaY > 0 ? rotationSpeed : -rotationSpeed)
+      );
     };
 
     const canvas = gl.domElement;
-    canvas.addEventListener('wheel', handleWheel, { passive: false });
+    canvas.addEventListener("wheel", handleWheel, { passive: false });
 
     return () => {
-      canvas.removeEventListener('wheel', handleWheel);
+      canvas.removeEventListener("wheel", handleWheel);
     };
   }, [isHovered, gl.domElement]);
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    
+
     // Right click, middle mouse button, or Shift+click for rotation
     if (e.button === 2 || e.button === 1 || e.shiftKey) {
       setIsRotating(true);
@@ -146,7 +171,7 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
         setDragOffset(mouseWorld.sub(modelCenter));
       }
     }
-    
+
     (e.target as any).setPointerCapture(e.pointerId);
   };
 
@@ -163,7 +188,7 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
       // Rotate based on horizontal mouse movement
       const deltaX = e.clientX - lastMouseX;
       const rotationSpeed = 0.01;
-      setRotationY(prev => prev + deltaX * rotationSpeed);
+      setRotationY((prev) => prev + deltaX * rotationSpeed);
       setLastMouseX(e.clientX);
       return;
     }
@@ -173,13 +198,13 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
 
     // Update position based on mouse position minus offset
     const newPosition = e.point.clone().sub(dragOffset);
-    
+
     // Clamp to bounds (optional - keep models within view)
     const halfWidth = size.width / 2;
     const halfHeight = size.height / 2;
     newPosition.x = Math.max(-halfWidth, Math.min(halfWidth, newPosition.x));
     newPosition.y = Math.max(-halfHeight, Math.min(halfHeight, newPosition.y));
-    
+
     meshRef.current.position.copy(newPosition);
   };
 
@@ -201,7 +226,6 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
     const normalizedPos = worldToNormalized(meshRef.current.position);
     onMove(model.id, normalizedPos);
   };
-
 
   // Initial position
   const initialWorldPos = getWorldPosition(model.position);
@@ -226,4 +250,6 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
 }
 
 // Preload models
-useGLTF.preload('https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb');
+useGLTF.preload(
+  "https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb"
+);
