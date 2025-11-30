@@ -20,22 +20,22 @@ async def seed_data():
                 Model3D(
                     id="shirt_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
-                    position=Position(x=0.2, y=0.9),
-                    scale=Scale(width=400.0, height=400.0),
+                    position=Position(x=0.3, y=0.65),
+                    scale=Scale(width=300.0, height=300.0),
                 ),
              
                 
             Model3D(
                     id="pant_2",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb",
-                    position=Position(x=0.5, y=0.9),
-                    scale=Scale(width=6000.0, height=6000.0),
+                    position=Position(x=0.5, y=0.65),
+                    scale=Scale(width=4000.0, height=4000.0),
                 ),
                 Model3D(
                     id="shoe_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/FlightHelmet/glTF/FlightHelmet.gltf",
-                    position=Position(x=0.8, y=0.9),
-                    scale=Scale(width=600.0, height=600.0),
+                    position=Position(x=0.7, y=0.65),
+                    scale=Scale(width=400.0, height=400.0),
                 ),
             ],
             activeUsers=0,
@@ -48,14 +48,14 @@ async def seed_data():
                 Model3D(
                     id="shoe_2",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/FlightHelmet/glTF/FlightHelmet.gltf",
-                    position=Position(x=0.2, y=0.9),
-                    scale=Scale(width=600.0, height=600.0),
+                    position=Position(x=0.2, y=0.45),
+                    scale=Scale(width=400.0, height=400.0),
                 ),
                 Model3D(
                     id="pant_2",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb",
-                    position=Position(x=0.5, y=0.9),
-                    scale=Scale(width=6000.0, height=6000.0),
+                    position=Position(x=0.4, y=0.45),
+                    scale=Scale(width=4000.0, height=4000.0),
                 ),
                 
             ],

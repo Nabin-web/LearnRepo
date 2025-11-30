@@ -42,7 +42,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <main className="min-h-screen p-8 bg-gradient-to-br from-slate-900 via-purple-400 to-slate-900">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12 space-y-4">
           <h1 className="text-5xl font-bold text-white mb-4">
@@ -54,7 +54,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {stores.map((store) => (
             <Link key={store._id} href={`/store/${store._id}`}>
               <Card className="group text-center overflow-hidden bg-white/10 backdrop-blur-sm border-white/20 hover:border-purple-400 transition-all duration-300  hover:shadow-2xl hover:shadow-purple-500/50 cursor-pointer h-full">
@@ -62,7 +62,7 @@ export default function HomePage() {
                   <img
                     src={store.backgroundImage}
                     alt={store.name}
-                    className="w-full h-[500px] object-cover group-hover:scale-110 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
                 </div>
@@ -81,8 +81,8 @@ export default function HomePage() {
                   <div
                     className={
                       store.activeUsers >= 2
-                        ? "bg-red-500/20 text-red-300 "
-                        : "bg-green-500/20 text-green-300 "
+                        ? " text-red-300 "
+                        : " text-green-300 "
                     }
                   >
                     {store.activeUsers}/2 users
