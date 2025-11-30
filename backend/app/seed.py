@@ -19,19 +19,19 @@ async def seed_data():
                     id="chair_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/SheenChair/glTF-Binary/SheenChair.glb",
                     position=Position(x=0.15, y=0.75),
-                    scale=Scale(width=1.0, height=1.0),
+                    scale=Scale(width=150.0, height=150.0),
                 ),
                 Model3D(
                     id="table_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Avocado/glTF-Binary/Avocado.glb",
                     position=Position(x=0.50, y=0.75),
-                    scale=Scale(width=0.75, height=0.75),
+                    scale=Scale(width=2000.0, height=2000.0),  # Avocado model is very small, needs larger scale
                 ),
                 Model3D(
                     id="sofa_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/FlightHelmet/glTF/FlightHelmet.gltf",
                     position=Position(x=0.75, y=0.50),
-                    scale=Scale(width=1.2, height=1.2),
+                    scale=Scale(width=200.0, height=200.0),
                 ),
             ],
             activeUsers=0,
@@ -39,19 +39,19 @@ async def seed_data():
         Store(
             _id="store_002",
             name="Cozy Bedroom",
-            backgroundImage="https://images.unsplash.com/photo-1616594039964-40891a909d99?q=80&w=2670&auto=format&fit=crop",
+            backgroundImage="https://cdn.shopify.com/s/files/1/0586/4266/1551/files/soft-girl-aesthetic-wall-decor-roomtery1_1024x1024.jpg?v=1675970618",
             models=[
                 Model3D(
                     id="bed_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Box/glTF-Binary/Box.glb",
                     position=Position(x=0.2, y=0.6),
-                    scale=Scale(width=1.2, height=0.6),
+                    scale=Scale(width=80.0, height=80.0),
                 ),
                 Model3D(
                     id="lamp_1",
                     url="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Lantern/glTF-Binary/Lantern.glb",
                     position=Position(x=0.7, y=0.3),
-                    scale=Scale(width=0.6, height=0.6),
+                    scale=Scale(width=15.0, height=15.0),  # Lantern is medium-sized
                 ),
             ],
             activeUsers=0,

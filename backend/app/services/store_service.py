@@ -22,3 +22,19 @@ class StoreService:
     async def create_store(store: Store) -> Store:
         await db.stores.insert_one(store.model_dump(by_alias=True))
         return store
+
+    @staticmethod
+    async def update_active_users(store_id: str, active_users: int) -> bool:
+        """Update the activeUsers count for a store"""
+        print(f"[update_active_users] Updating store_id={store_id} with active_users={active_users}")
+        
+        result = await db.stores.update_one(
+            {"_id": store_id},
+            {"$set": {"activeUsers": active_users}}
+        )
+        
+        print(f"[update_active_users] matched_count={result.matched_count}, modified_count={result.modified_count}")
+        
+        # Return True if document was found (matched), not just if it was modified
+        # modified_count can be 0 if the value was already the same
+        return result.matched_count > 0

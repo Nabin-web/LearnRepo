@@ -6,6 +6,10 @@ import { api, Store } from '@/lib/api';
 import { socket } from '@/lib/socket';
 import Scene3D from '@/components/Scene3D';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
 
 export default function StorePage() {
   const params = useParams();
@@ -16,17 +20,28 @@ export default function StorePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connected, setConnected] = useState(false);
-  const [activeUserCount, setActiveUserCount] = useState<number>(1);
+  const [activeUserCount, setActiveUserCount] = useState<number>(0);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     // Fetch store data
     api.getStore(storeId)
-      .then(setStore)
+      .then((storeData) => {
+        setStore(storeData);
+        setActiveUserCount(storeData.activeUsers || 0);
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
 
     // Connect to socket
     socket.connect();
+
+    // If socket is already connected, join immediately
+    if (socket.connected) {
+      console.log('Socket already connected, joining store');
+      setConnected(true);
+      socket.emit('join_store', { storeId });
+    }
 
     socket.on('connect', () => {
       console.log('Connected to socket');
@@ -40,8 +55,9 @@ export default function StorePage() {
     });
 
     socket.on('store_full', () => {
-      alert('This store is full (2 users maximum). Please try again later.');
-      router.push('/');
+      console.log('Store is full - access denied');
+      setAccessDenied(true);
+      setConnected(false);
     });
 
     socket.on('model_position_updated', (data: any) => {
@@ -60,7 +76,9 @@ export default function StorePage() {
     });
 
     socket.on('active_user_count', (data) => {
-      if (typeof data.count === 'number') setActiveUserCount(data.count);
+      if (typeof data.count === 'number') {
+        setActiveUserCount(data.count);
+      }
     });
 
     return () => {
@@ -72,9 +90,11 @@ export default function StorePage() {
       socket.off('active_user_count');
       socket.disconnect();
     };
-  }, [storeId, router]);
+  }, [storeId]);
 
   const handleModelMove = (modelId: string, position: { x: number; y: number }) => {
+    if (!connected || accessDenied) return;
+
     // Optimistic update
     setStore((prev) => {
       if (!prev) return prev;
@@ -95,7 +115,7 @@ export default function StorePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="text-xl text-white">Loading store...</div>
       </div>
     );
@@ -103,30 +123,58 @@ export default function StorePage() {
 
   if (error || !store) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900">
-        <div className="text-xl text-red-400 mb-4">Error: {error || 'Store not found'}</div>
-        <Link href="/" className="text-purple-400 hover:text-purple-300">
-          ← Back to stores
-        </Link>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <Card className="p-8 max-w-md bg-white/10 backdrop-blur-sm border-white/20">
+          <div className="text-xl text-red-400 mb-4 text-center">Error: {error || 'Store not found'}</div>
+          <Button asChild className="w-full">
+            <Link href="/">← Back to stores</Link>
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
+        <Card className="p-8 max-w-md bg-white/10 backdrop-blur-sm border-white/20">
+          <Alert variant="destructive" className="mb-6 bg-red-500/20 border-red-500/50">
+            <AlertTitle className="text-red-300">Access Denied</AlertTitle>
+            <AlertDescription className="text-red-200">
+              This store is currently full (2 users maximum). Please try again later.
+            </AlertDescription>
+          </Alert>
+          <Button asChild className="w-full">
+            <Link href="/">← Back to stores</Link>
+          </Button>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900">
-      <header className="bg-black/50 backdrop-blur-sm border-b border-white/10 p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="text-purple-400 hover:text-purple-300 flex items-center gap-2">
-            <span>←</span> Back to Stores
-          </Link>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <header className="bg-black/50 backdrop-blur-sm border-b border-white/10 p-4 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+          <Button variant="ghost" asChild className="text-white hover:text-purple-300">
+            <Link href="/" className="flex items-center gap-2">
+              <span>←</span> Back to Stores
+            </Link>
+          </Button>
           <h1 className="text-2xl font-bold text-white">{store.name}</h1>
           <div className="flex items-center gap-4">
-            <span className={`px-3 py-1 rounded-full text-sm ${connected ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
+            <Badge
+              variant={connected ? "secondary" : "destructive"}
+              className={connected ? "bg-green-500/20 text-green-300 border-green-500/30" : "bg-red-500/20 text-red-300 border-red-500/30"}
+            >
               {connected ? '● Connected' : '○ Disconnected'}
-            </span>
-            <span className={`px-3 py-1 rounded-full text-sm ${activeUserCount >= 2 ? "bg-red-500/20 text-red-300" : "bg-green-500/20 text-green-300"}`}>
+            </Badge>
+            <Badge
+              variant={activeUserCount >= 2 ? "destructive" : "secondary"}
+              className={activeUserCount >= 2 ? "bg-red-500/20 text-red-300 border-red-500/30" : "bg-green-500/20 text-green-300 border-green-500/30"}
+            >
               {activeUserCount}/2 users
-            </span>
+            </Badge>
           </div>
         </div>
       </header>
