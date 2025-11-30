@@ -133,17 +133,17 @@ export default function StorePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="text-xl text-white">Loading store...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-xl text-gray-700">Loading store...</div>
       </div>
     );
   }
 
   if (error || !store) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <Card className="p-8 max-w-md bg-white/10 backdrop-blur-sm border-white/20">
-          <div className="text-xl text-red-400 mb-4 text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <Card className="p-8 max-w-md bg-white border-gray-200 shadow-lg">
+          <div className="text-xl text-red-600 mb-4 text-center">
             Error: {error || "Store not found"}
           </div>
           <Button asChild className="w-full">
@@ -156,15 +156,15 @@ export default function StorePage() {
 
   if (accessDenied) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
-        <Card className="p-8 max-w-md bg-white/10 backdrop-blur-sm border-white/20">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+        <Card className="p-8 max-w-md bg-white border-gray-200 shadow-lg">
           <Alert
             variant="destructive"
-            className="mb-6 bg-red-500/20 border-red-500/50"
+            className="mb-6 bg-red-50 border-red-200"
           >
-            <AlertTitle className="text-red-300">Access Denied</AlertTitle>
-            <AlertDescription className="text-red-200">
-              This store is currently full (2 users maximum). Please try again
+            <AlertTitle className="text-red-800">Customer Exceeded</AlertTitle>
+            <AlertDescription className="text-red-700">
+              This store is currently full (2 users maximum). Please come again
               later.
             </AlertDescription>
           </Alert>
@@ -177,26 +177,26 @@ export default function StorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <header className="bg-black/50 backdrop-blur-sm border-b border-white/10 p-4 sticky top-0 z-50">
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 p-4 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
           <Button
             variant="ghost"
             asChild
-            className="text-white hover:text-purple-300"
+            className="text-gray-700 hover:text-blue-600"
           >
             <Link href="/" className="flex items-center gap-2">
               <span>←</span> Back to Stores
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold text-white">{store.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
           <div className="flex items-center gap-4">
             <Badge
               variant={connected ? "secondary" : "destructive"}
               className={
                 connected
-                  ? "bg-green-500/20 text-green-300"
-                  : "bg-red-500/20 text-red-300 border-red-500/30"
+                  ? "bg-green-100 text-green-700 border-green-200"
+                  : "bg-red-100 text-red-700 border-red-200"
               }
             >
               {connected ? "● Customer count:" : "○ Disconnected"}
@@ -205,8 +205,8 @@ export default function StorePage() {
               variant={activeUserCount >= 2 ? "destructive" : "secondary"}
               className={
                 activeUserCount >= 2
-                  ? "bg-red-500/20 text-red-300 "
-                  : "bg-green-500/20 text-green-300"
+                  ? "bg-red-100 text-red-700 border-red-200"
+                  : "bg-green-100 text-green-700 border-green-200"
               }
             >
               {activeUserCount}

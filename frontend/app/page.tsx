@@ -27,28 +27,28 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="text-xl text-white">Loading stores...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-xl text-gray-700">Loading stores...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="text-xl text-red-400">Error: {error}</div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-xl text-red-600">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen p-8 bg-gradient-to-br from-slate-900 via-purple-400 to-slate-900">
+    <main className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12 space-y-4">
-          <h1 className="text-5xl font-bold text-white mb-4">
+          <h1 className="text-5xl font-bold text-gray-900 mb-4">
             3D Store Visualization
           </h1>
-          <p className="text-gray-300 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Select a store to enter and interact with 3D models. Collaborate
             with others in real-time!
           </p>
@@ -57,22 +57,22 @@ export default function HomePage() {
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {stores.map((store) => (
             <Link key={store._id} href={`/store/${store._id}`}>
-              <Card className="group text-center overflow-hidden bg-white/10 backdrop-blur-sm border-white/20 hover:border-purple-400 transition-all duration-300  hover:shadow-2xl hover:shadow-purple-500/50 cursor-pointer h-full">
+              <Card className="group text-center overflow-hidden bg-white border-gray-200 hover:border-blue-400 transition-all duration-300 hover:shadow-xl cursor-pointer h-full">
                 <div className="aspect-video relative overflow-hidden">
                   <img
                     src={store.backgroundImage}
                     alt={store.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-2xl font-bold text-white">
+                  <CardTitle className="text-2xl font-bold text-gray-900">
                     {store.name}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-300 ">
+                  <CardDescription className="text-gray-600">
                     {store.models.length}{" "}
                     {store.models.length === 1 ? "model" : "models"} available
                   </CardDescription>
@@ -81,15 +81,15 @@ export default function HomePage() {
                   <div
                     className={
                       store.activeUsers >= 2
-                        ? " text-red-300 "
-                        : " text-green-300 "
+                        ? "text-red-600 font-medium"
+                        : "text-green-600 font-medium"
                     }
                   >
                     {store.activeUsers}/2 users
                   </div>
                   <button
                     type="button"
-                    className="text-white hover:text-purple-300 cursor-pointer bg-transparent  px-4 py-2 h-auto rounded-md transition-colors outline-none focus:outline-none"
+                    className="cursor-pointer bg-transparent px-4 py-2 h-auto rounded-md transition-colors outline-none focus:outline-none font-medium"
                     style={{ backgroundColor: "transparent", border: "none" }}
                   >
                     Enter →

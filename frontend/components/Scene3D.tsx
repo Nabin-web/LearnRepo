@@ -56,7 +56,7 @@ export default function Scene3D({ store, onModelMove }: Scene3DProps) {
       style={{ height: "calc(100vh - 73px)", minHeight: "600px" }}
     >
       {/* Background Image - Full visible, centered, no cropping */}
-      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-center bg-gray-100 overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={store.backgroundImage}
