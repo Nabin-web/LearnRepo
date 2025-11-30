@@ -16,10 +16,14 @@ interface Model3DProps {
 export default function Model3D({ model, onMove, animationDelay, shouldAnimate }: Model3DProps) {
   const meshRef = useRef<THREE.Group>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotationY, setRotationY] = useState(0);
   const [animationProgress, setAnimationProgress] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [dragOffset, setDragOffset] = useState<THREE.Vector3>(new THREE.Vector3());
-  const { size } = useThree();
+  const [lastMouseX, setLastMouseX] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const { size, gl } = useThree();
 
   // Load GLB model
   const { scene } = useGLTF(model.url);
@@ -92,6 +96,11 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
       }
       meshRef.current.scale.set(model.scale.width, model.scale.width, model.scale.width);
     }
+
+    // Apply rotation
+    if (meshRef.current) {
+      meshRef.current.rotation.y = rotationY;
+    }
   });
 
   // Update position when model changes externally
@@ -101,21 +110,64 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
     meshRef.current.position.copy(targetPos);
   }, [model.position, isDragging]);
 
+  // Handle mouse wheel for rotation when hovering over the model
+  useEffect(() => {
+    if (!isHovered) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (!isHovered) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const rotationSpeed = 0.02;
+      setRotationY(prev => prev + (e.deltaY > 0 ? rotationSpeed : -rotationSpeed));
+    };
+
+    const canvas = gl.domElement;
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel);
+    };
+  }, [isHovered, gl.domElement]);
+
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
-    setIsDragging(true);
     
-    if (meshRef.current) {
-      // Calculate offset between mouse and model center
-      const modelCenter = meshRef.current.position.clone();
-      const mouseWorld = e.point.clone();
-      setDragOffset(mouseWorld.sub(modelCenter));
+    // Right click, middle mouse button, or Shift+click for rotation
+    if (e.button === 2 || e.button === 1 || e.shiftKey) {
+      setIsRotating(true);
+      setLastMouseX(e.clientX);
+    } else {
+      setIsDragging(true);
+      if (meshRef.current) {
+        // Calculate offset between mouse and model center
+        const modelCenter = meshRef.current.position.clone();
+        const mouseWorld = e.point.clone();
+        setDragOffset(mouseWorld.sub(modelCenter));
+      }
     }
     
     (e.target as any).setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
+    // Check if Shift key is pressed during move (for rotation)
+    if (e.shiftKey && isDragging) {
+      setIsDragging(false);
+      setIsRotating(true);
+      setLastMouseX(e.clientX);
+    }
+
+    if (isRotating) {
+      e.stopPropagation();
+      // Rotate based on horizontal mouse movement
+      const deltaX = e.clientX - lastMouseX;
+      const rotationSpeed = 0.01;
+      setRotationY(prev => prev + deltaX * rotationSpeed);
+      setLastMouseX(e.clientX);
+      return;
+    }
+
     if (!isDragging || !meshRef.current) return;
     e.stopPropagation();
 
@@ -132,6 +184,13 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
   };
 
   const handlePointerUp = (e: ThreeEvent<PointerEvent>) => {
+    if (isRotating) {
+      e.stopPropagation();
+      setIsRotating(false);
+      (e.target as any).releasePointerCapture(e.pointerId);
+      return;
+    }
+
     if (!isDragging || !meshRef.current) return;
     e.stopPropagation();
 
@@ -143,6 +202,7 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
     onMove(model.id, normalizedPos);
   };
 
+
   // Initial position
   const initialWorldPos = getWorldPosition(model.position);
   const initialScale = hasAnimated ? model.scale.width : 0.1;
@@ -152,9 +212,13 @@ export default function Model3D({ model, onMove, animationDelay, shouldAnimate }
       ref={meshRef}
       position={[initialWorldPos.x, initialWorldPos.y, 0]}
       scale={[initialScale, initialScale, initialScale]}
+      rotation={[0, rotationY, 0]}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerEnter={() => setIsHovered(true)}
+      onPointerLeave={() => setIsHovered(false)}
+      onContextMenu={(e) => e.preventDefault()} // Prevent context menu on right click
     >
       <primitive object={scene.clone()} />
     </group>
