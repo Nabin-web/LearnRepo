@@ -18,7 +18,7 @@ class Model3D(BaseModel):
 class Store(BaseModel):
     id: str = Field(..., alias="_id")
     name: str
-    backgroundImage: str
+    backgroundImage: Optional[str] = None  # Optional for widget-only stores
     models: List[Model3D] = []
     activeUsers: int = 0
 

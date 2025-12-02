@@ -18,6 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
+# Make startup script executable
+RUN chmod +x start.sh
+
 # Expose port (Render will set PORT env var, default to 8000)
 EXPOSE 8000
 
@@ -25,8 +28,10 @@ EXPOSE 8000
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-# Run the application
-# Render provides PORT environment variable, default to 8000 if not set
-# Use shell form to properly expand PORT variable
-CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Run the startup script
+# The script will optionally run insert_widget_store.py if:
+#   RUN_INSERT_WIDGET_STORE=true
+#   WIDGET_DOMAIN=your-domain.com
+# Then it starts the FastAPI server
+CMD ["./start.sh"]
 

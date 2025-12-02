@@ -1,12 +1,23 @@
 import asyncio
+import os
 from app.database import db
 from app.models.store import Store, Model3D, Position, Scale
 
 async def seed_data():
+    # Get domain from environment variable or use default
+    # For production: learnrepo-1.onrender.com
+    # For local: localhost
+    domain = os.getenv("WIDGET_DOMAIN", "learnrepo-1.onrender.com")
+    frontend_url = os.getenv("FRONTEND_URL", "https://learnrepo-1.onrender.com")
     print("Seeding data...")
+    print("Clearing all existing data...")
     
-    # Clear existing data
-    await db.stores.delete_many({})
+    # Clear existing data from all collections
+    stores_deleted = await db.stores.delete_many({})
+    analytics_deleted = await db.analytics.delete_many({})
+    print(f"  - Deleted {stores_deleted.deleted_count} stores")
+    print(f"  - Deleted {analytics_deleted.deleted_count} analytics records")
+    print()
     
     # NOTE: Replace the model URLs below with actual glTF/GLB URLs for shirt, pant, and shoe models
     # You can find free 3D models at: Sketchfab, Poly Haven, or create your own
@@ -66,32 +77,35 @@ async def seed_data():
     for store in stores:
         await db.stores.insert_one(store.model_dump(by_alias=True))
         print(f"Inserted store: {store.name}")
+    
+    print(f"\nConfiguring widgets with domain: {domain}")
+    print(f"Frontend URL: {frontend_url}\n")
         
     # Add widget config to store_001
     await db.stores.update_one(
         {"_id": "store_001"},
         {"$set": {
-            "domain": "localhost",
+            "domain": domain,
             "widgetConfig": {
                 "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                "clickableLink": "http://localhost:3000/store/store_001"
+                "clickableLink": f"{frontend_url}/store/store_001"
             }
         }}
     )
-    print("Updated store_001 with widget config")
+    print(f"✅ Updated store_001 with widget config (domain: {domain})")
     
     # Add widget config to store_002 (different video)
     await db.stores.update_one(
         {"_id": "store_002"},
         {"$set": {
-            "domain": "localhost",  # Can use same domain or different
+            "domain": domain,  # Both stores use the same domain
             "widgetConfig": {
                 "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-                "clickableLink": "http://localhost:3000/store/store_002"
+                "clickableLink": f"{frontend_url}/store/store_002"
             }
         }}
     )
-    print("Updated store_002 with widget config")
+    print(f"✅ Updated store_002 with widget config (domain: {domain})")
 
     print("Seeding complete.")
 

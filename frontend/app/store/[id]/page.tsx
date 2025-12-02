@@ -227,21 +227,21 @@ export default function StorePage() {
 
   if (loading) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-gray-50'>
-        <div className='text-xl text-gray-700'>Loading store...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-xl text-gray-700">Loading store...</div>
       </div>
     );
   }
 
   if (error || !store) {
     return (
-      <div className='flex flex-col items-center justify-center min-h-screen bg-gray-50'>
-        <Card className='p-8 max-w-md bg-white border-gray-200 shadow-lg'>
-          <div className='text-xl text-red-600 mb-4 text-center'>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+        <Card className="p-8 max-w-md bg-white border-gray-200 shadow-lg">
+          <div className="text-xl text-red-600 mb-4 text-center">
             Error: {error || "Store not found"}
           </div>
-          <Button asChild className='w-full'>
-            <Link href='/'>← Back to stores</Link>
+          <Button asChild className="w-full">
+            <Link href="/">← Back to stores</Link>
           </Button>
         </Card>
       </div>
@@ -250,20 +250,20 @@ export default function StorePage() {
 
   if (accessDenied) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-gray-50 p-4'>
-        <Card className='p-8 max-w-md bg-white border-gray-200 shadow-lg'>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
+        <Card className="p-8 max-w-md bg-white border-gray-200 shadow-lg">
           <Alert
-            variant='destructive'
-            className='mb-6 bg-red-50 border-red-200'
+            variant="destructive"
+            className="mb-6 bg-red-50 border-red-200"
           >
-            <AlertTitle className='text-red-800'>Customer Exceeded</AlertTitle>
-            <AlertDescription className='text-red-700'>
+            <AlertTitle className="text-red-800">Customer Exceeded</AlertTitle>
+            <AlertDescription className="text-red-700">
               This store is currently full (2 users maximum). Please come again
               later.
             </AlertDescription>
           </Alert>
-          <Button asChild className='w-full'>
-            <Link href='/'>← Back to stores</Link>
+          <Button asChild className="w-full">
+            <Link href="/">← Back to stores</Link>
           </Button>
         </Card>
       </div>
@@ -271,20 +271,20 @@ export default function StorePage() {
   }
 
   return (
-    <div className='min-h-screen bg-gray-50'>
-      <header className='bg-white border-b border-gray-200 p-4 sticky top-0 z-50 shadow-sm'>
-        <div className='max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4'>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 p-4 sticky top-0 z-50 shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
           <Button
-            variant='ghost'
+            variant="ghost"
             asChild
-            className='text-gray-700 hover:text-blue-600'
+            className="text-gray-700 hover:text-blue-600"
           >
-            <Link href='/' className='flex items-center gap-2'>
+            <Link href="/" className="flex items-center gap-2">
               <span>←</span> Back to Stores
             </Link>
           </Button>
-          <h1 className='text-2xl font-bold text-gray-900'>{store.name}</h1>
-          <div className='flex items-center gap-4'>
+          <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
+          <div className="flex items-center gap-4">
             <Badge
               variant={connected ? "secondary" : "destructive"}
               className={
@@ -316,7 +316,7 @@ export default function StorePage() {
         src={WIDGET_SCRIPT_URL}
         data-api-url={API_URL}
         data-store-id={storeId}
-        strategy='afterInteractive'
+        strategy="afterInteractive"
         onLoad={() => {
           console.log("[Widget] Script loaded");
         }}
