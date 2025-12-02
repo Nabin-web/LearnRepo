@@ -242,7 +242,9 @@ export default function Model3D({
       onPointerUp={handlePointerUp}
       onPointerEnter={() => setIsHovered(true)}
       onPointerLeave={() => setIsHovered(false)}
-      onContextMenu={(e) => e.preventDefault()} // Prevent context menu on right click
+      onContextMenu={(e) => {
+        e.nativeEvent.preventDefault();
+      }} // Prevent context menu on right click
     >
       <primitive object={scene.clone()} />
     </group>
