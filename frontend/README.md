@@ -1,5 +1,22 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+This project uses environment variables to configure the backend API URL. Create a `.env.local` file in the frontend directory:
+
+```bash
+# Backend API Configuration
+NEXT_PUBLIC_API_URL=https://learnrepo.onrender.com
+NEXT_PUBLIC_SOCKET_URL=https://learnrepo.onrender.com
+```
+
+**Note**: If environment variables are not set, the app defaults to `https://learnrepo.onrender.com` (production Render URL).
+
+The API URL is used throughout the frontend via the centralized config in `lib/config.ts`:
+- `API_URL` - Used for all REST API calls
+- `SOCKET_URL` - Used for Socket.IO connections
+- `WIDGET_SCRIPT_URL` - Derived from API_URL for widget script loading
+
 ## Getting Started
 
 First, run the development server:

@@ -1,7 +1,5 @@
 import { io } from 'socket.io-client';
-
-// Use environment variable or default to localhost
-const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:8000';
+import { SOCKET_URL } from './config';
 
 export const socket = io(SOCKET_URL, {
     autoConnect: false,

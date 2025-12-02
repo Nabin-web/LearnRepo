@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Script from "next/script";
 import { api, Store } from "@/lib/api";
 import { socket } from "@/lib/socket";
+import { API_URL, WIDGET_SCRIPT_URL } from "@/lib/config";
 import Scene3D from "@/components/Scene3D";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -312,8 +313,8 @@ export default function StorePage() {
 
       {/* Store-specific widget - shows different video for each store */}
       <Script
-        src='http://localhost:8000/widget/video-banner-widget.js'
-        data-api-url='http://localhost:8000'
+        src={WIDGET_SCRIPT_URL}
+        data-api-url={API_URL}
         data-store-id={storeId}
         strategy='afterInteractive'
         onLoad={() => {

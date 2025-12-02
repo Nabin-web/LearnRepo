@@ -27,5 +27,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 # Run the application
 # Render provides PORT environment variable, default to 8000 if not set
-CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+# Use shell form to properly expand PORT variable
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
 
