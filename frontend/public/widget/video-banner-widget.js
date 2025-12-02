@@ -23,6 +23,20 @@
   const ANALYTICS_ENDPOINT = `${API_URL}/api/widget/analytics`;
 
   /**
+   * Detect video format from URL extension
+   */
+  function getVideoType(videoUrl) {
+    const urlLower = videoUrl.toLowerCase();
+    if (urlLower.endsWith(".mp4")) return "video/mp4";
+    if (urlLower.endsWith(".webm")) return "video/webm";
+    if (urlLower.endsWith(".ogg") || urlLower.endsWith(".ogv"))
+      return "video/ogg";
+    if (urlLower.endsWith(".mov")) return "video/quicktime";
+    // Default to mp4 if format cannot be determined
+    return "video/mp4";
+  }
+
+  /**
    * Track analytics events
    * Reports events to the backend analytics service
    */
@@ -107,8 +121,16 @@
       if (shadow) {
         const video = shadow.querySelector("video");
         if (video) {
+          // Properly clean up video element
           video.pause();
+          // Remove all source elements
+          const sources = video.querySelectorAll("source");
+          sources.forEach((source) => source.remove());
+          // Clear both src property and attribute
           video.src = "";
+          video.removeAttribute("src");
+          // Remove all event listeners by cloning (if needed)
+          // Reset video element state
           video.load();
         }
         // Remove any open modals
@@ -125,21 +147,25 @@
   /**
    * Create and render the widget
    */
-  function renderWidget(config, targetStoreId) {
+  async function renderWidget(config, targetStoreId) {
     // Always cleanup existing widget first to ensure fresh render
     cleanupWidget();
 
+    // Small delay to ensure cleanup completes and DOM is ready
+    // This is especially important when navigating back to the page
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Create widget container
-    const widgetContainer = document.createElement("div");
-    widgetContainer.id = WIDGET_ID;
-    widgetContainer.setAttribute(
+    const widgetContainer2 = document.createElement("div");
+    widgetContainer2.id = WIDGET_ID;
+    widgetContainer2.setAttribute(
       "data-store-id",
       targetStoreId || storeId || ""
     );
-    document.body.appendChild(widgetContainer);
+    document.body.appendChild(widgetContainer2);
 
     // Use Shadow DOM for style isolation
-    const shadow = widgetContainer.attachShadow({ mode: "open" });
+    const shadow = widgetContainer2.attachShadow({ mode: "open" });
 
     // Inject styles
     const style = document.createElement("style");
@@ -246,10 +272,11 @@
       .modal-close:active {
         transform: scale(0.95);
       }
-      .modal-content iframe {
+      .modal-content video {
         width: 100%;
         height: 100%;
-        border: none;
+        object-fit: contain;
+        background: #000;
       }
       @media (max-width: 768px) {
         .widget-container {
@@ -267,28 +294,270 @@
     `;
     shadow.appendChild(style);
 
-    // Create widget HTML structure
-    const container = document.createElement("div");
-    container.className = "widget-container";
-    container.innerHTML = `
-      <div class="video-banner" role="button" aria-label="Click to view more information" tabindex="0">
-        <video autoplay loop muted playsinline preload="auto">
-          <source src="${config.videoUrl}" type="video/mp4">
-          Your browser does not support the video tag.
-        </video>
-      </div>
+    // Validate video URL
+    if (
+      !config.videoUrl ||
+      typeof config.videoUrl !== "string" ||
+      config.videoUrl.trim() === ""
+    ) {
+      console.error("[Widget] Invalid video URL:", config.videoUrl);
+      return;
+    }
+
+    // Inject styles (moved here to ensure shadow is created first)
+    const style2 = document.createElement("style");
+    style.textContent = `
+      :host {
+        all: initial;
+      }
+      .widget-container {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 999999;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      }
+      .video-banner {
+        width: 300px;
+        max-width: calc(100vw - 40px);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: #000;
+      }
+      .video-banner:hover {
+        transform: scale(1.05);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+      }
+      .video-banner:active {
+        transform: scale(1.02);
+      }
+      .video-banner video {
+        width: 100%;
+        height: auto;
+        display: block;
+        pointer-events: none;
+      }
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000000;
+        animation: fadeIn 0.2s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      .modal-content {
+        position: relative;
+        width: 90%;
+        max-width: 1200px;
+        height: 80vh;
+        max-height: 90vh;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        animation: slideUp 0.3s ease;
+      }
+      @keyframes slideUp {
+        from {
+          transform: translateY(20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+      .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 28px;
+        line-height: 1;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease;
+        font-family: Arial, sans-serif;
+      }
+      .modal-close:hover {
+        background: rgba(0, 0, 0, 0.9);
+      }
+      .modal-close:active {
+        transform: scale(0.95);
+      }
+      .modal-content video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+      }
+      @media (max-width: 768px) {
+        .widget-container {
+          bottom: 10px;
+          left: 10px;
+        }
+        .video-banner {
+          width: 250px;
+        }
+        .modal-content {
+          width: 95%;
+          height: 85vh;
+        }
+      }
     `;
-    shadow.appendChild(container);
+    shadow.appendChild(style2);
+
+    // Create widget container structure
+    const widgetContainer = document.createElement("div");
+    widgetContainer.className = "widget-container";
+
+    const videoBanner = document.createElement("div");
+    videoBanner.className = "video-banner";
+    videoBanner.setAttribute("role", "button");
+    videoBanner.setAttribute("aria-label", "Click to view more information");
+    videoBanner.setAttribute("tabindex", "0");
+
+    // Create video element programmatically to ensure clean state
+    const video = document.createElement("video");
+    video.setAttribute("autoplay", "true");
+    video.setAttribute("loop", "");
+    video.setAttribute("muted", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("preload", "auto");
+
+    // Create and append source element
+    const source = document.createElement("source");
+
+    // Use setAttribute to ensure it's properly set
+    source.setAttribute("src", config.videoUrl);
+    source.setAttribute("type", getVideoType(config.videoUrl));
+    video.appendChild(source);
+
+    // Verify source was set correctly
+    if (
+      !source.getAttribute("src") ||
+      source.getAttribute("src") !== config.videoUrl
+    ) {
+      console.error(
+        "[Widget] Failed to set source src attribute:",
+        config.videoUrl
+      );
+      return;
+    }
+
+    videoBanner.appendChild(video);
+    widgetContainer.appendChild(videoBanner);
+    shadow.appendChild(widgetContainer);
+
+    // Track if video has started playing
+    let videoStarted = false;
+
+    // Function to start video playback
+    const startVideo = () => {
+      if (videoStarted || video.readyState < 2) return; // Already started or not ready
+      video
+        .play()
+        .then(() => {
+          videoStarted = true;
+        })
+        .catch(() => {
+          // Ignore autoplay errors - video will play on next user interaction
+        });
+    };
+
+    // Ensure video loads after being added to DOM
+    setTimeout(() => {
+      // Double-check source is still set before loading
+      const currentSource = video.querySelector("source");
+      if (currentSource && currentSource.getAttribute("src")) {
+        video.load();
+
+        // Try to play immediately (may be blocked by autoplay policy)
+        video
+          .play()
+          .then(() => {
+            videoStarted = true;
+          })
+          .catch((err) => {
+            // Autoplay was prevented - this is normal browser behavior
+            // Check if it's specifically an autoplay policy error
+            const isAutoplayError =
+              err.name === "NotAllowedError" ||
+              err.message?.includes("user didn't interact") ||
+              err.message?.includes("autoplay");
+
+            if (!isAutoplayError) {
+              // Only log if it's not an autoplay prevention error
+              console.warn(
+                "[Widget] Banner video play error:",
+                err.message || err
+              );
+            }
+
+            // Add one-time click handler to start video on first user interaction
+            const startOnInteraction = () => {
+              startVideo();
+              // Remove listeners after first interaction
+              document.removeEventListener("click", startOnInteraction, true);
+              document.removeEventListener(
+                "touchstart",
+                startOnInteraction,
+                true
+              );
+            };
+
+            // Listen for first user interaction anywhere on the page
+            document.addEventListener("click", startOnInteraction, {
+              once: true,
+              capture: true,
+            });
+            document.addEventListener("touchstart", startOnInteraction, {
+              once: true,
+              capture: true,
+            });
+          });
+      } else {
+        console.error(
+          "[Widget] Source lost before load, re-setting:",
+          config.videoUrl
+        );
+        // Re-set the source if it was lost
+        if (currentSource) {
+          currentSource.setAttribute("src", config.videoUrl);
+          video.load();
+        }
+      }
+    }, 100);
 
     // Track widget loaded event
     trackEvent("widget_loaded", {
       videoUrl: config.videoUrl,
       clickableLink: config.clickableLink,
     });
-
-    // Get video element and banner
-    const videoBanner = container.querySelector(".video-banner");
-    const video = container.querySelector("video");
 
     // Track video loaded event
     video.addEventListener(
@@ -330,8 +599,10 @@
     const handleClick = () => {
       trackEvent("banner_clicked", {
         clickableLink: config.clickableLink,
+        videoUrl: config.videoUrl,
       });
-      openModal(config.clickableLink, shadow);
+      // Open modal with the video URL (not the clickable link page)
+      openModal(config.videoUrl, shadow);
     };
 
     videoBanner.addEventListener("click", handleClick);
@@ -346,7 +617,7 @@
   }
 
   /**
-   * Open modal with iframe overlay
+   * Open modal with video player
    */
   function openModal(url, shadow) {
     // Check if modal already exists
@@ -358,20 +629,94 @@
     modal.className = "modal-overlay";
     modal.setAttribute("role", "dialog");
     modal.setAttribute("aria-modal", "true");
-    modal.setAttribute("aria-label", "Content overlay");
+    modal.setAttribute("aria-label", "Video player");
 
-    modal.innerHTML = `
-      <div class="modal-content">
-        <button class="modal-close" aria-label="Close overlay" tabindex="0">×</button>
-        <iframe src="${url}" title="Content overlay" allowfullscreen></iframe>
-      </div>
-    `;
+    // Create modal content
+    const modalContent = document.createElement("div");
+    modalContent.className = "modal-content";
 
+    // Create close button
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "modal-close";
+    closeBtn.setAttribute("aria-label", "Close video player");
+    closeBtn.setAttribute("tabindex", "0");
+    closeBtn.textContent = "×";
+
+    // Create video element
+    const video = document.createElement("video");
+    video.setAttribute("controls", "");
+    video.setAttribute("autoplay", "");
+    video.setAttribute("playsinline", "");
+    video.setAttribute("preload", "auto");
+    video.style.width = "100%";
+    video.style.height = "100%";
+    video.style.objectFit = "contain";
+    video.style.background = "#000";
+
+    // Create source element for the video
+    const source = document.createElement("source");
+    source.setAttribute("src", url);
+    source.setAttribute("type", getVideoType(url));
+    video.appendChild(source);
+
+    modalContent.appendChild(closeBtn);
+    modalContent.appendChild(video);
+    modal.appendChild(modalContent);
     shadow.appendChild(modal);
 
+    // Add error handler for better debugging (before loading)
+    const errorHandler = () => {
+      setTimeout(() => {
+        const error = video.error;
+        if (error && error.code && error.code !== 0) {
+          console.error("[Widget] Video playback error:", {
+            code: error.code,
+            message: error.message,
+            videoUrl: url,
+            videoType: getVideoType(url),
+            currentSrc: video.currentSrc || video.src,
+          });
+        }
+      }, 100);
+    };
+    video.addEventListener("error", errorHandler, { once: true });
+
+    // Load and play the video after a small delay to ensure DOM is ready
+    setTimeout(() => {
+      // Verify source is still set
+      const currentSource = video.querySelector("source");
+      if (currentSource && currentSource.getAttribute("src")) {
+        video.load();
+        video.play().catch((err) => {
+          // Only log if it's not just an autoplay prevention
+          if (!err.message.includes("play() request was interrupted")) {
+            console.warn("[Widget] Video play error:", err.message || err);
+          }
+        });
+      } else {
+        console.error("[Widget] Source element lost before load");
+      }
+    }, 50);
+
     // Close button handler
-    const closeBtn = modal.querySelector(".modal-close");
     const closeModal = () => {
+      // Pause and cleanup video
+      try {
+        video.pause();
+        // Remove error handler to prevent errors during cleanup
+        video.removeEventListener("error", errorHandler);
+        // Clear sources first
+        const sources = video.querySelectorAll("source");
+        sources.forEach((source) => source.remove());
+        // Then clear src
+        video.removeAttribute("src");
+        video.src = "";
+        // Reset video element
+        video.load();
+      } catch {
+        // Ignore cleanup errors
+      }
+
       modal.style.animation = "fadeOut 0.2s ease";
       setTimeout(() => {
         modal.remove();
@@ -417,7 +762,7 @@
     const runInit = async () => {
       const config = await fetchWidgetConfig(targetStoreId);
       if (config) {
-        renderWidget(config, targetStoreId);
+        await renderWidget(config, targetStoreId);
       }
     };
 

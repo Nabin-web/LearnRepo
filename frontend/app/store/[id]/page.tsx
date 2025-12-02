@@ -25,7 +25,6 @@ declare global {
 
 export default function StorePage() {
   const params = useParams();
-  const router = useRouter();
   const storeId = params.id as string;
 
   const [store, setStore] = useState<Store | null>(null);
@@ -34,8 +33,7 @@ export default function StorePage() {
   const [connected, setConnected] = useState(false);
   const [activeUserCount, setActiveUserCount] = useState<number>(0);
   const [accessDenied, setAccessDenied] = useState(false);
-  const [widgetScriptLoaded, setWidgetScriptLoaded] = useState(false);
-  const widgetInitializedRef = useRef(false);
+  const widgetInitializedRef = useRef<string | null>(null);
 
   useEffect(() => {
     // Fetch store data
@@ -75,7 +73,7 @@ export default function StorePage() {
       setConnected(false);
     });
 
-    socket.on("model_position_updated", (data: any) => {
+    socket.on("model_position_updated", (data) => {
       console.log("Model position updated:", data);
       setStore((prev) => {
         if (!prev) return prev;
@@ -114,36 +112,51 @@ export default function StorePage() {
       return;
     }
 
+    // Skip if already initialized for this storeId
+    if (widgetInitializedRef.current === storeId) {
+      return;
+    }
+
     // Wait for widget API to be available (either from script load or already cached)
     let pollInterval: NodeJS.Timeout | null = null;
-    
-    const tryInit = () => {
+
+    const tryInit = async () => {
       if (window.VideoBannerWidget) {
-        window.VideoBannerWidget.cleanup(); // Cleanup any existing widget first
-        window.VideoBannerWidget.init(storeId).then(() => {
-          widgetInitializedRef.current = true;
+        // Always cleanup first to ensure clean state, especially when navigating back
+        // The widget's renderWidget function also cleans up, but doing it here ensures
+        // we have a clean slate before initialization
+        if (widgetInitializedRef.current) {
+          window.VideoBannerWidget.cleanup();
+          // Small delay to ensure cleanup completes before reinitialization
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        try {
+          await window.VideoBannerWidget.init(storeId);
+          widgetInitializedRef.current = storeId;
           console.log(`[Widget] Initialized for store: ${storeId}`);
-        }).catch((error) => {
+        } catch (error) {
           console.error("[Widget] Failed to initialize:", error);
-        });
+        }
         return true;
       }
       return false;
     };
 
     // Try immediately first with a small delay for DOM readiness
-    const initTimer = setTimeout(() => {
-      if (tryInit()) {
+    const initTimer = setTimeout(async () => {
+      const success = await tryInit();
+      if (success) {
         return; // Success, no need to poll
       }
 
       // Poll until available or max attempts (script might be cached)
       let attempts = 0;
       const maxAttempts = 50; // 5 seconds max wait
-      
-      pollInterval = setInterval(() => {
+
+      pollInterval = setInterval(async () => {
         attempts++;
-        if (tryInit() || attempts >= maxAttempts) {
+        const success = await tryInit();
+        if (success || attempts >= maxAttempts) {
           if (pollInterval) clearInterval(pollInterval);
           pollInterval = null;
         }
@@ -155,15 +168,23 @@ export default function StorePage() {
       if (pollInterval) {
         clearInterval(pollInterval);
       }
-      
-      // Cleanup widget when component unmounts or storeId changes
-      if (window.VideoBannerWidget) {
-        window.VideoBannerWidget.cleanup();
-        widgetInitializedRef.current = false;
-        console.log(`[Widget] Cleaned up for store: ${storeId}`);
-      }
     };
-  }, [storeId, store, accessDenied, loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeId, store?.id, accessDenied, loading]);
+
+  // Separate effect to cleanup widget only when storeId changes or component unmounts
+  useEffect(() => {
+    return () => {
+      // Cleanup widget when component unmounts or storeId changes
+      if (window.VideoBannerWidget && widgetInitializedRef.current) {
+        window.VideoBannerWidget.cleanup();
+        console.log(
+          `[Widget] Cleaned up for store: ${widgetInitializedRef.current}`
+        );
+      }
+      widgetInitializedRef.current = null;
+    };
+  }, [storeId]);
 
   const handleModelMove = (
     modelId: string,
@@ -205,21 +226,21 @@ export default function StorePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-xl text-gray-700">Loading store...</div>
+      <div className='flex items-center justify-center min-h-screen bg-gray-50'>
+        <div className='text-xl text-gray-700'>Loading store...</div>
       </div>
     );
   }
 
   if (error || !store) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
-        <Card className="p-8 max-w-md bg-white border-gray-200 shadow-lg">
-          <div className="text-xl text-red-600 mb-4 text-center">
+      <div className='flex flex-col items-center justify-center min-h-screen bg-gray-50'>
+        <Card className='p-8 max-w-md bg-white border-gray-200 shadow-lg'>
+          <div className='text-xl text-red-600 mb-4 text-center'>
             Error: {error || "Store not found"}
           </div>
-          <Button asChild className="w-full">
-            <Link href="/">← Back to stores</Link>
+          <Button asChild className='w-full'>
+            <Link href='/'>← Back to stores</Link>
           </Button>
         </Card>
       </div>
@@ -228,20 +249,20 @@ export default function StorePage() {
 
   if (accessDenied) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 p-4">
-        <Card className="p-8 max-w-md bg-white border-gray-200 shadow-lg">
+      <div className='flex items-center justify-center min-h-screen bg-gray-50 p-4'>
+        <Card className='p-8 max-w-md bg-white border-gray-200 shadow-lg'>
           <Alert
-            variant="destructive"
-            className="mb-6 bg-red-50 border-red-200"
+            variant='destructive'
+            className='mb-6 bg-red-50 border-red-200'
           >
-            <AlertTitle className="text-red-800">Customer Exceeded</AlertTitle>
-            <AlertDescription className="text-red-700">
+            <AlertTitle className='text-red-800'>Customer Exceeded</AlertTitle>
+            <AlertDescription className='text-red-700'>
               This store is currently full (2 users maximum). Please come again
               later.
             </AlertDescription>
           </Alert>
-          <Button asChild className="w-full">
-            <Link href="/">← Back to stores</Link>
+          <Button asChild className='w-full'>
+            <Link href='/'>← Back to stores</Link>
           </Button>
         </Card>
       </div>
@@ -249,20 +270,20 @@ export default function StorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b border-gray-200 p-4 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
+    <div className='min-h-screen bg-gray-50'>
+      <header className='bg-white border-b border-gray-200 p-4 sticky top-0 z-50 shadow-sm'>
+        <div className='max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4'>
           <Button
-            variant="ghost"
+            variant='ghost'
             asChild
-            className="text-gray-700 hover:text-blue-600"
+            className='text-gray-700 hover:text-blue-600'
           >
-            <Link href="/" className="flex items-center gap-2">
+            <Link href='/' className='flex items-center gap-2'>
               <span>←</span> Back to Stores
             </Link>
           </Button>
-          <h1 className="text-2xl font-bold text-gray-900">{store.name}</h1>
-          <div className="flex items-center gap-4">
+          <h1 className='text-2xl font-bold text-gray-900'>{store.name}</h1>
+          <div className='flex items-center gap-4'>
             <Badge
               variant={connected ? "secondary" : "destructive"}
               className={
@@ -288,16 +309,15 @@ export default function StorePage() {
       </header>
 
       <Scene3D store={store} onModelMove={handleModelMove} />
-      
+
       {/* Store-specific widget - shows different video for each store */}
       <Script
-        src="http://localhost:8000/widget/video-banner-widget.js"
-        data-api-url="http://localhost:8000"
+        src='http://localhost:8000/widget/video-banner-widget.js'
+        data-api-url='http://localhost:8000'
         data-store-id={storeId}
-        strategy="afterInteractive"
+        strategy='afterInteractive'
         onLoad={() => {
           console.log("[Widget] Script loaded");
-          setWidgetScriptLoaded(true);
         }}
         onError={(e) => {
           console.error("[Widget] Script load error:", e);
