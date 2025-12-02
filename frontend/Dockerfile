@@ -9,7 +9,8 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Install dependencies
-RUN npm ci
+# Use --legacy-peer-deps to handle peer dependency conflicts (picomatch version mismatch)
+RUN npm ci --legacy-peer-deps
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
