@@ -22,8 +22,11 @@ fastapi_app.add_middleware(
 )
 
 # Serve widget static files
-# Assuming widget files are in frontend/public/widget directory
-widget_path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "widget")
+# First try local widget directory (for production deployment)
+widget_path = os.path.join(os.path.dirname(__file__), "..", "widget")
+if not os.path.exists(widget_path):
+    # Fallback to frontend/public/widget (for local development)
+    widget_path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "widget")
 if os.path.exists(widget_path):
     fastapi_app.mount("/widget", StaticFiles(directory=widget_path), name="widget")
 
