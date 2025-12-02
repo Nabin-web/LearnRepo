@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Banner Widget - Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .note strong {
+            color: #856404;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #0c5460;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info strong {
+            color: #0c5460;
+        }
+        .demo-area {
+            min-height: 400px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+            margin-top: 20px;
+        }
+        .demo-area p {
+            color: #666;
+            text-align: center;
+            margin-top: 150px;
+        }
+        ul {
+            line-height: 1.8;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Video Banner Widget - Example</h1>
+        <p class="subtitle">This page demonstrates the embeddable video banner widget</p>
+
+        <div class="section">
+            <h2>📋 How It Works</h2>
+            <p>The widget will appear at the bottom-left corner of this page. It:</p>
+            <ul>
+                <li>✅ Automatically detects the current domain</li>
+                <li>✅ Fetches configuration from the backend API</li>
+                <li>✅ Displays a floating video banner</li>
+                <li>✅ Opens a clickable link in an iframe overlay when clicked</li>
+                <li>✅ Tracks analytics events (widget_loaded, video_loaded, banner_clicked)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>💻 Embedding Instructions</h2>
+            <p>To embed the widget on your website, add this script tag to your HTML:</p>
+            <div class="code-block">
+&lt;script 
+  src="http://localhost:8000/widget/video-banner-widget.js"
+  data-api-url="http://localhost:8000"&gt;
+&lt;/script&gt;
+            </div>
+            
+            <div class="note">
+                <strong>Note:</strong> Replace <code>http://localhost:8000</code> with your actual backend URL in production.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Backend Setup</h2>
+            <p>Before the widget works, you need to:</p>
+            <ol>
+                <li><strong>Start the backend server</strong> (if not already running):
+                    <div class="code-block">
+cd backend
+./run.sh
+                    </div>
+                </li>
+                <li><strong>Create a store document in MongoDB</strong> with your domain:
+                    <div class="code-block">
+db.stores.insertOne({
+  domain: "localhost",
+  name: "Test Store",
+  widgetConfig: {
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    clickableLink: "https://example.com"
+  }
+})
+                    </div>
+                </li>
+            </ol>
+            
+            <div class="info">
+                <strong>Tip:</strong> For testing, you can use the domain "localhost" or your actual domain name. 
+                The widget will automatically use <code>window.location.hostname</code> to detect the domain.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Analytics Events</h2>
+            <p>The widget tracks three events:</p>
+            <ul>
+                <li><strong>widget_loaded</strong>: Fired when the widget script initializes</li>
+                <li><strong>video_loaded</strong>: Fired when the video element is ready to play</li>
+                <li><strong>banner_clicked</strong>: Fired when the user clicks the video banner</li>
+            </ul>
+            <p>All events are sent to: <code>POST /api/widget/analytics</code></p>
+            <p>Check your browser's Network tab to see the analytics requests.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎨 Demo Area</h2>
+            <p>Scroll down to see the widget in action. It will appear at the bottom-left corner.</p>
+            <div class="demo-area">
+                <p>📺 The video banner widget should appear at the bottom-left corner of this page</p>
+                <p>👆 Click it to see the iframe overlay in action!</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Troubleshooting</h2>
+            <ul>
+                <li><strong>Widget not appearing?</strong> Check the browser console for errors</li>
+                <li><strong>Video not loading?</strong> Verify the video URL is accessible and the domain is registered in MongoDB</li>
+                <li><strong>Analytics not working?</strong> Check that the backend server is running and MongoDB is connected</li>
+                <li><strong>CORS errors?</strong> Ensure the backend CORS settings allow your domain</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 
+        Widget Script - This is what you would add to any website
+        The widget will automatically detect the domain and fetch configuration
+    -->
+    <script 
+        src="http://localhost:8000/widget/video-banner-widget.js"
+        data-api-url="http://localhost:8000">
+    </script>
+
+    <!-- Add some content to make the page scrollable -->
+    <div style="height: 2000px; background: linear-gradient(180deg, transparent 0%, rgba(102, 126, 234, 0.1) 100%);"></div>
+</body>
+</html>
+

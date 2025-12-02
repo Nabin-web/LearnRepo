@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Script from "next/script";
 import { api, Store } from "@/lib/api";
 import { socket } from "@/lib/socket";
 import Scene3D from "@/components/Scene3D";
@@ -10,6 +11,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card } from "@/components/ui/card";
+
+// Declare global widget interface
+declare global {
+  interface Window {
+    VideoBannerWidget?: {
+      init: (storeId?: string) => Promise<void>;
+      cleanup: () => void;
+      destroy: () => void;
+    };
+  }
+}
 
 export default function StorePage() {
   const params = useParams();
@@ -22,6 +34,8 @@ export default function StorePage() {
   const [connected, setConnected] = useState(false);
   const [activeUserCount, setActiveUserCount] = useState<number>(0);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [widgetScriptLoaded, setWidgetScriptLoaded] = useState(false);
+  const widgetInitializedRef = useRef(false);
 
   useEffect(() => {
     // Fetch store data
@@ -92,6 +106,64 @@ export default function StorePage() {
       socket.disconnect();
     };
   }, [storeId]);
+
+  // Widget lifecycle management
+  useEffect(() => {
+    // Only initialize widget if we have a store and not in error states
+    if (!store || accessDenied || loading) {
+      return;
+    }
+
+    // Wait for widget API to be available (either from script load or already cached)
+    let pollInterval: NodeJS.Timeout | null = null;
+    
+    const tryInit = () => {
+      if (window.VideoBannerWidget) {
+        window.VideoBannerWidget.cleanup(); // Cleanup any existing widget first
+        window.VideoBannerWidget.init(storeId).then(() => {
+          widgetInitializedRef.current = true;
+          console.log(`[Widget] Initialized for store: ${storeId}`);
+        }).catch((error) => {
+          console.error("[Widget] Failed to initialize:", error);
+        });
+        return true;
+      }
+      return false;
+    };
+
+    // Try immediately first with a small delay for DOM readiness
+    const initTimer = setTimeout(() => {
+      if (tryInit()) {
+        return; // Success, no need to poll
+      }
+
+      // Poll until available or max attempts (script might be cached)
+      let attempts = 0;
+      const maxAttempts = 50; // 5 seconds max wait
+      
+      pollInterval = setInterval(() => {
+        attempts++;
+        if (tryInit() || attempts >= maxAttempts) {
+          if (pollInterval) clearInterval(pollInterval);
+          pollInterval = null;
+        }
+      }, 100);
+    }, 100);
+
+    return () => {
+      clearTimeout(initTimer);
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+      
+      // Cleanup widget when component unmounts or storeId changes
+      if (window.VideoBannerWidget) {
+        window.VideoBannerWidget.cleanup();
+        widgetInitializedRef.current = false;
+        console.log(`[Widget] Cleaned up for store: ${storeId}`);
+      }
+    };
+  }, [storeId, store, accessDenied, loading]);
 
   const handleModelMove = (
     modelId: string,
@@ -216,6 +288,21 @@ export default function StorePage() {
       </header>
 
       <Scene3D store={store} onModelMove={handleModelMove} />
+      
+      {/* Store-specific widget - shows different video for each store */}
+      <Script
+        src="http://localhost:8000/widget/video-banner-widget.js"
+        data-api-url="http://localhost:8000"
+        data-store-id={storeId}
+        strategy="afterInteractive"
+        onLoad={() => {
+          console.log("[Widget] Script loaded");
+          setWidgetScriptLoaded(true);
+        }}
+        onError={(e) => {
+          console.error("[Widget] Script load error:", e);
+        }}
+      />
     </div>
   );
 }

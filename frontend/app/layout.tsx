@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,6 +29,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        {/* Video Banner Widget - Loads on all pages */}
+        <Script
+          src="http://localhost:8000/widget/video-banner-widget.js"
+          data-api-url="http://localhost:8000"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

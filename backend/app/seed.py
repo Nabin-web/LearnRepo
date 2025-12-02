@@ -67,7 +67,7 @@ async def seed_data():
         await db.stores.insert_one(store.model_dump(by_alias=True))
         print(f"Inserted store: {store.name}")
         
-    # Add extra widget config to the primary store (as before)
+    # Add widget config to store_001
     await db.stores.update_one(
         {"_id": "store_001"},
         {"$set": {
@@ -79,6 +79,19 @@ async def seed_data():
         }}
     )
     print("Updated store_001 with widget config")
+    
+    # Add widget config to store_002 (different video)
+    await db.stores.update_one(
+        {"_id": "store_002"},
+        {"$set": {
+            "domain": "localhost",  # Can use same domain or different
+            "widgetConfig": {
+                "videoUrl": "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+                "clickableLink": "http://localhost:3000/store/store_002"
+            }
+        }}
+    )
+    print("Updated store_002 with widget config")
 
     print("Seeding complete.")
 
